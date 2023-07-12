@@ -1,8 +1,9 @@
 name: "Docker build and push"
 
 on:
-  push:
-    branches-ignore: [master]
+  release:
+    types:
+      - published
 
 jobs:
   docker:
@@ -12,14 +13,16 @@ jobs:
     steps:
       - name: Set time var
         run: |
-          echo "time=$(date +'%Y-%m-%dT%H:%M:%S')" >> $GITHUB_ENV
-          echo "ref=$(date +'%Y-%m-%dT%H-%M-%S')" >> $GITHUB_ENV
+          echo "time=${{ github.event.release.name }}" >> $GITHUB_ENV
+          echo "ref=${{ github.event.release.name }}" >> $GITHUB_ENV
+      - name: test
+        run: echo ${{ steps.print_release.outputs.assets }}
       # Checks out a copy of your repository on the ubuntu-latest machine
-      - name: Checkout code
-        uses: actions/checkout@v2
-        with:
+#      - name: Checkout code
+#        uses: actions/checkout@v2
+#        with:
           # Make sure the actual branch is checked out when running on pull requests
-          ref: ${{ github.head_ref }}
+#          ref: ${{ github.head_ref }}
 
 #      - name: Cache node modules
 #        uses: actions/cache@v2
@@ -33,36 +36,36 @@ jobs:
 #            ${{ runner.os }}-build-
 #            ${{ runner.os }}-
 
-      - name: Install modules
-        run: npm ci
+#      - name: Install modules
+#        run: npm ci
 
-      - name: Build
-        run: npm run build
+#      - name: Build
+#        run: npm run build
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Docker image build and push
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/test:${{ env.ref }}
-
-      - name: Docker image build and push
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/test:latest
+#      - name: Set up Docker Buildx
+#        uses: docker/setup-buildx-action@v2
+#
+#      - name: Login to Docker Hub
+#        uses: docker/login-action@v2
+#        with:
+#          username: ${{ secrets.DOCKERHUB_USERNAME }}
+#          password: ${{ secrets.DOCKERHUB_TOKEN }}
+#
+#      - name: Docker image build and push
+#        uses: docker/build-push-action@v4
+#        with:
+#          context: .
+#          platforms: linux/amd64,linux/arm64
+#          push: true
+#          tags: ${{ secrets.DOCKERHUB_USERNAME }}/test:${{ env.ref }}
+#
+#      - name: Docker image build and push
+#        uses: docker/build-push-action@v4
+#        with:
+#          context: .
+#          platforms: linux/amd64,linux/arm64
+#          push: true
+#          tags: ${{ secrets.DOCKERHUB_USERNAME }}/test:latest
 
 #      - name: Copy public
 #        run: cp -r public flood-for-transmission
